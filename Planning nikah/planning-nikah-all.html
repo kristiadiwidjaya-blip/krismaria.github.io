@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Planning Nikah All-in</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f4f7;
+    padding: 20px;
+}
+.container {
+    max-width: 480px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 14px;
+    margin: auto;
+    box-shadow: 0 0 14px rgba(0,0,0,0.1);
+}
+h2 { text-align: center; }
+label { font-weight: bold; margin-top: 10px; display: block; }
+input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 18px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+}
+.section {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+.result {
+    margin-top: 15px;
+    padding: 12px;
+    background: #eef7ff;
+    border-radius: 8px;
+}
+.progress {
+    background: #ddd;
+    border-radius: 10px;
+    height: 18px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+.progress-bar {
+    height: 100%;
+    background: #3498db;
+    width: 0%;
+}
+.alert {
+    margin-top: 10px;
+    color: red;
+    font-weight: bold;
+}
+.small { font-size: 13px; color: #555; }
+canvas { margin-top: 15px; }
+</style>
+</head>
+
+<body>
+<div class="container">
+<h2>💍 Planning Nikah (ALL-IN)</h2>
+
+<div class="section">
+<b>📋 Detail Biaya</b>
+<label>Gedung</label><input id="gedung">
+<label>Catering</label><input id="catering">
+<label>Dekorasi</label><input id="dekorasi">
+<label>Dokumentasi</label><input id="dok">
+<label>Busana & Makeup</label><input id="busana">
+<label>Undangan & Souvenir</label><input id="undangan">
+<label>Administrasi & Lainnya</label><input id="admin">
+</div>
+
+<div class="section">
+<b>💰 Keuangan</b>
+<label>Tabungan Awal</label><input id="awal">
+<label>Nabung Kamu / Bulan</label><input id="kamu">
+<label>Nabung Pasangan / Bulan</label><input id="pasangan">
+</div>
+
+<button onclick="hitung()">Hitung & Simpan</button>
+
+<div class="result" id="hasil"></div>
+<div class="alert" id="alert"></div>
+
+<div class="small">⏳ Target: <b>21 bulan</b></div>
+<div class="progress"><div class="progress-bar" id="bar"></div></div>
+
+<canvas id="chart" height="140"></canvas>
+</div>
+
+<script>
+const BULAN = 21;
+const MAX = 200000000;
+const ids = ["gedung","catering","dekorasi","dok","busana","undangan","admin","awal","kamu","pasangan"];
+
+// load saved data
+ids.forEach(id=>{
+  if(localStorage[id]) document.getElementById(id).value = localStorage[id];
+});
+
+function hitung() {
+  let biaya = 0;
+  ["gedung","catering","dekorasi","dok","busana","undangan","admin"]
+  .forEach(id => biaya += +document.getElementById(id).value || 0);
+
+  let awal = +awal.value || 0;
+  let kamu = +kamu.value || 0;
+  let pasangan = +pasangan.value || 0;
+
+  let butuh = biaya - awal;
+  let nabungBulan = kamu + pasangan;
+  let total = nabungBulan * BULAN;
+  let selisih = total - butuh;
+
+  ids.forEach(id=>localStorage[id]=document.getElementById(id).value);
+
+  bar.style.width = Math.min((total/butuh)*100,100)+"%";
+
+  hasil.innerHTML = `
+  <b>Total Biaya:</b> Rp ${biaya.toLocaleString()}<br>
+  <b>Total Nabung:</b> Rp ${total.toLocaleString()}<br>
+  <b>Ideal Nabung/Bulan:</b> Rp ${Math.ceil(butuh/BULAN).toLocaleString()}<br>
+  <b>Kontribusi:</b><br>
+  Kamu: ${(kamu/BULAN*BULAN).toLocaleString()} | Pasangan: ${(pasangan/BULAN*BULAN).toLocaleString()}<br><br>
+  ${selisih>=0 ? "✅ AMAN" : "❌ KURANG Rp "+Math.abs(selisih).toLocaleString()}
+  `;
+
+  alert.innerHTML = biaya > MAX ? "⚠️ Budget melebihi 200 juta!" : "";
+
+  drawChart(biaya, total);
+}
+
+function drawChart(biaya, total) {
+  let ctx = chart.getContext("2d");
+  ctx.clearRect(0,0,chart.width,chart.height);
+  let max = Math.max(biaya,total);
+  ctx.fillStyle="#e74c3c";
+  ctx.fillRect(40,120-(biaya/max*100),60,biaya/max*100);
+  ctx.fillStyle="#2ecc71";
+  ctx.fillRect(140,120-(total/max*100),60,total/max*100);
+  ctx.fillStyle="#000";
+  ctx.fillText("Biaya",50,135);
+  ctx.fillText("Tabungan",130,135);
+}
+</script>
+</body>
+</html>
